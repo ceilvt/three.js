@@ -142,22 +142,14 @@ class Scene(base_classes.BaseScene):
                         geom.write_animation(export_dir)
 
                     geom_data = geom.copy()
-                    if embed:
-                        geometries.append(geom_data)
-                        continue
-
-                    geo_type = geom_data[constants.TYPE].lower()
-                    if geo_type == constants.GEOMETRY.lower():
+                    if not embed:
                         geom_data.pop(constants.DATA)
-                    elif geo_type == constants.BUFFER_GEOMETRY.lower():
-                        geom_data.pop(constants.ATTRIBUTES)
-                        geom_data.pop(constants.METADATA)
 
-                    url = 'geometry.%s%s' % (geom.node, extension)
-                    geometry_file = os.path.join(export_dir, url)
+                        url = 'geometry.%s%s' % (geom.node, extension)
+                        geometry_file = os.path.join(export_dir, url)
 
-                    geom.write(filepath=geometry_file)
-                    geom_data[constants.URL] = os.path.basename(url)
+                        geom.write(filepath=geometry_file)
+                        geom_data[constants.URL] = os.path.basename(url)
 
                     geometries.append(geom_data)
 
@@ -171,7 +163,7 @@ class Scene(base_classes.BaseScene):
 
         io.dump(self.filepath, data, options=self.options)
 
-        if self.options.get(constants.COPY_TEXTURES):
+        if self.options.get(constants.EXPORT_TEXTURES) and not self.options.get(constants.EMBED_TEXTURES):
             texture_folder = self.options.get(constants.TEXTURE_FOLDER)
             for geo in self[constants.GEOMETRIES]:
                 logger.info("Copying textures from %s", geo.node)
@@ -217,7 +209,7 @@ class Scene(base_classes.BaseScene):
             scene_name = constants.SCENE
         self[constants.OBJECT] = object_.Object(None, parent=self)
         self[constants.OBJECT][constants.TYPE] = constants.SCENE.title()
-        self[constants.UUID] = utilities.id_from_name(scene_name)
+        self[constants.UUID] = utilities.id()
 
         objects = []
         if self.options.get(constants.HIERARCHY, False):
